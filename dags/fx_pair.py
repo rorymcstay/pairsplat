@@ -30,10 +30,12 @@ class Args:
         self.epics = []
         self.resolution = '4H'
         self.universe_name = "TRADINGO"
+        self.config = {}
 
     def __repr__(self):
 
-        return f"Args({self.start_date=}, {self.end_date=}, {self.resolution=}, {self.universe_name=}, {self.epics=})"
+        return (f"Args({self.start_date=}, {self.end_date=},"
+                f" {self.resolution=}, {self.universe_name=}, {self.epics=})")
 
 
 @task
@@ -96,6 +98,30 @@ def load(**context):
     )
     logger.info('\n%s', data)
 
+@task
+def backtest(**context):
+    arctic = Arctic(os.environ['TRADINGO_PRICE_STORE'])
+    args = Args(context)
+    fx.load_config(CONFIG, args)
+    logger.info(args)
+
+    try:
+
+        fx.backtest(
+            arctic,
+            epics=args.epics,
+            start_date=args.config['start_date'],
+            end_date=args.end_date,
+            resolution=args.resolution,
+            universe_name=args.universe_name,
+            config=args.config,
+            diagnostics=diagnostics,
+        )
+
+    except Exception as ex:
+
+        fx.log_diagnostics(diagnostics)
+
 
 with DAG(
     dag_id="tradingo-etl",
@@ -105,4 +131,4 @@ with DAG(
     max_active_runs=1,
 ) as dag:
 
-    extract() >> transform() >> load()
+    extract() >> transform() >> load() >> backtest()
