@@ -105,22 +105,15 @@ def backtest(**context):
     fx.load_config(CONFIG, args)
     logger.info(args)
 
-    try:
-
-        fx.backtest(
-            arctic,
-            epics=args.epics,
-            start_date=args.config['start_date'],
-            end_date=args.end_date,
-            resolution=args.resolution,
-            universe_name=args.universe_name,
-            config=args.config,
-            diagnostics=diagnostics,
-        )
-
-    except Exception as ex:
-
-        fx.log_diagnostics(diagnostics)
+    fx.backtest(
+        arctic,
+        epics=args.epics,
+        start_date=pd.Timestamp(args.config['start_date']),
+        end_date=args.end_date,
+        resolution=args.resolution,
+        universe_name=args.universe_name,
+        config=args.config,
+    )
 
 
 with DAG(
